@@ -87,7 +87,8 @@ def index():
     if chart_img:
         chart_base64 = base64.b64encode(chart_img.getvalue()).decode('utf-8')
         chart_url = 'data:image/png;base64,{}'.format(chart_base64)
-    return render_template('index.html', chart_url=chart_url)
+    users = data['users'].keys()
+    return render_template('index.html', chart_url=chart_url, users=users)
 
 # Rest of your routes (add_user, add_data, edit_user, delete_user)
 @app.route('/view_data/<username>')
