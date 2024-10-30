@@ -215,5 +215,10 @@ def delete_user():
         return redirect(url_for('index'))
     return render_template('delete_user.html', users=data['users'].keys())
 
+# Custom filter to convert timestamp to date string
+@app.template_filter('timestamp_to_date')
+def timestamp_to_date_filter(timestamp):
+    return datetime.fromtimestamp(timestamp).strftime('%Y-%m-%d')
+
 if __name__ == '__main__':
     app.run(debug=True)
