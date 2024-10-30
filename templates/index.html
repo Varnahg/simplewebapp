@@ -3,69 +3,10 @@
 {% extends 'base.html' %}
 
 {% block content %}
-    <canvas id="weightChart" width="800" height="400"></canvas>
-    <script>
-        const users = {{ users | tojson }};
-        const colors = {{ colors | tojson }};
-
-        // Prepare datasets for Chart.js
-        const datasets = [];
-        for (const [user, data] of Object.entries(users)) {
-            const color = colors[user];
-            const rgbColor = `rgb(${color[0]*255}, ${color[1]*255}, ${color[2]*255})`;
-
-            // User weights
-            const weights = data.weights.map(entry => ({
-                x: new Date(entry.timestamp * 1000),
-                y: entry.weight
-            }));
-
-            datasets.push({
-                label: user,
-                data: weights,
-                borderColor: rgbColor,
-                fill: false,
-                tension: 0.1
-            });
-
-            // User goal
-            datasets.push({
-                label: `${user} Goal`,
-                data: [
-                    { x: new Date(), y: data.goal },
-                    { x: new Date(0), y: data.goal }
-                ],
-                borderColor: rgbColor,
-                borderDash: [5, 5],
-                fill: false,
-                pointRadius: 0
-            });
-        }
-
-        const ctx = document.getElementById('weightChart').getContext('2d');
-        const weightChart = new Chart(ctx, {
-            type: 'line',
-            data: { datasets },
-            options: {
-                scales: {
-                    x: {
-                        type: 'time',
-                        time: {
-                            unit: 'day'
-                        },
-                        title: {
-                            display: true,
-                            text: 'Date'
-                        }
-                    },
-                    y: {
-                        title: {
-                            display: true,
-                            text: 'Weight (kg)'
-                        }
-                    }
-                }
-            }
-        });
-    </script>
+    <h2>Weight Tracker Graph</h2>
+    {% if chart_url %}
+        <img src="{{ chart_url }}" alt="Weight Chart">
+    {% else %}
+        <p>No data to display.</p>
+    {% endif %}
 {% endblock %}
