@@ -1,0 +1,27 @@
+<!-- templates/add_data.html -->
+
+{% extends 'base.html' %}
+
+{% block content %}
+    <h2>Add Data</h2>
+    {% if error %}
+    <p class="error">{{ error }}</p>
+    {% endif %}
+    <form method="post" action="{{ url_for('add_data') }}">
+        <label for="user">Select User:</label>
+        <select name="user" id="user" required>
+            <option value="">Select User</option>
+            {% for user in users %}
+            <option value="{{ user }}">{{ user }}</option>
+            {% endfor %}
+        </select>
+
+        <label for="date">Date:</label>
+        <input type="date" name="date" id="date" required>
+
+        <label for="weight">Weight (kg):</label>
+        <input type="number" name="weight" id="weight" step="0.1" required>
+
+        <button type="submit">Add Data</button>
+    </form>
+{% endblock %}
