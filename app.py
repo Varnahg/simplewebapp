@@ -55,13 +55,15 @@ def generate_chart(data):
         color = colors[user]
         rgb_color = (color[0], color[1], color[2])
 
+        # Plot user's weight data
         ax.plot(dates, weight_values, label=user, color=rgb_color)
 
-        # Plot goal line
+        # Plot goal line as a dotted line
         goal = user_data['goal']
-        ax.axhline(y=goal, linestyle='dashed', color=rgb_color, label=f"{user}'s Goal")
+        ax.hlines(y=goal, xmin=min(dates), xmax=max(dates), linestyles='dashed', colors=[rgb_color], label=f"{user}'s Goal")
 
     if not any_data:
+        plt.close(fig)
         return None  # Return None if there's no data to plot
 
     ax.set_title('Weight Tracker')
