@@ -52,3 +52,32 @@ button:hover {
 .error {
     color: red;
 }
+
+table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 1em;
+}
+
+th, td {
+    border: 1px solid #ddd;
+    padding: 0.5em;
+}
+
+th {
+    background-color: #f2f2f2;
+}
+
+.flashes {
+    list-style-type: none;
+    padding: 0;
+    margin: 1em 0;
+}
+
+.flashes li {
+    background-color: #ffdddd;
+    color: #d8000c;
+    padding: 1em;
+    margin-bottom: 0.5em;
+    border: 1px solid #d8000c;
+}
