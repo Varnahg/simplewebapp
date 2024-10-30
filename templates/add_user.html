@@ -1,0 +1,19 @@
+<!-- templates/add_user.html -->
+
+{% extends 'base.html' %}
+
+{% block content %}
+    <h2>Add User</h2>
+    {% if error %}
+    <p class="error">{{ error }}</p>
+    {% endif %}
+    <form method="post" action="{{ url_for('add_user') }}">
+        <label for="name">User Name:</label>
+        <input type="text" name="name" id="name" required>
+
+        <label for="goal">Goal Weight (kg):</label>
+        <input type="number" name="goal" id="goal" step="0.1" required>
+
+        <button type="submit">Save</button>
+    </form>
+{% endblock %}
