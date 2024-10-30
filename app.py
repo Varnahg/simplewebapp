@@ -1,6 +1,6 @@
 # app.py
 
-from flask import Flask, render_template, request, redirect, url_for, send_file
+from flask import Flask, render_template, request, redirect, url_for, send_file, flash
 import os
 import json
 from datetime import datetime
@@ -90,6 +90,56 @@ def index():
     return render_template('index.html', chart_url=chart_url)
 
 # Rest of your routes (add_user, add_data, edit_user, delete_user)
+@app.route('/view_data/<username>')
+def view_data(username):
+    data = load_data()
+    if username not in data['users']:
+        flash('User not found.')
+        return redirect(url_for('index'))
+    user_data = data['users'][username]
+    # Sort weights by timestamp
+    weights = sorted(user_data['weights'], key=lambda x: x['timestamp'])
+    return render_template('view_data.html', username=username, weights=weights)
+
+@app.route('/edit_entry/<username>/<timestamp>', methods=['GET', 'POST'])
+def edit_entry(username, timestamp):
+    data = load_data()
+    if username not in data['users']:
+        flash('User not found.')
+        return redirect(url_for('index'))
+    user_data = data['users'][username]
+    entry = next((w for w in user_data['weights'] if str(w['timestamp']) == timestamp), None)
+    if not entry:
+        flash('Entry not found.')
+        return redirect(url_for('view_data', username=username))
+    if request.method == 'POST':
+        date_str = request.form.get('date')
+        weight = request.form.get('weight')
+        if not date_str or not weight:
+            flash('Please provide all fields.')
+            return redirect(url_for('edit_entry', username=username, timestamp=timestamp))
+        date_obj = datetime.strptime(date_str, '%Y-%m-%d')
+        new_timestamp = date_obj.timestamp()
+        entry['timestamp'] = new_timestamp
+        entry['weight'] = float(weight)
+        # Sort weights by timestamp
+        user_data['weights'].sort(key=lambda x: x['timestamp'])
+        save_data(data)
+        return redirect(url_for('view_data', username=username))
+    # Prepare data for the template
+    entry_date = datetime.fromtimestamp(entry['timestamp']).strftime('%Y-%m-%d')
+    return render_template('edit_entry.html', username=username, entry=entry, entry_date=entry_date)
+
+@app.route('/delete_entry/<username>/<timestamp>', methods=['POST'])
+def delete_entry(username, timestamp):
+    data = load_data()
+    if username not in data['users']:
+        flash('User not found.')
+        return redirect(url_for('index'))
+    user_data = data['users'][username]
+    user_data['weights'] = [w for w in user_data['weights'] if str(w['timestamp']) != timestamp]
+    save_data(data)
+    return redirect(url_for('view_data', username=username))
 
 # Route to add a user
 @app.route('/add_user', methods=['GET', 'POST'])
@@ -127,7 +177,7 @@ def add_data():
         # Sort weights by timestamp
         data['users'][user]['weights'].sort(key=lambda x: x['timestamp'])
         save_data(data)
-        return redirect(url_for('index'))
+        return redirect(url_for('view_data', username=user))
     return render_template('add_data.html', users=data['users'].keys())
 
 # Route to edit a user
