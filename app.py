@@ -1,10 +1,13 @@
 # app.py
 
-from flask import Flask, render_template, request, redirect, url_for, jsonify
+from flask import Flask, render_template, request, redirect, url_for, send_file
 import os
 import json
 from datetime import datetime
 import random
+import matplotlib.pyplot as plt
+import io
+import base64
 
 app = Flask(__name__)
 
@@ -27,10 +30,66 @@ def save_data(data):
     with open(DATA_FILE, 'w') as f:
         json.dump(data, f)
 
+# Function to generate the chart
+def generate_chart(data):
+    users = data['users']
+    colors = data['colors']
+    fig, ax = plt.subplots(figsize=(10, 6))
+
+    any_data = False  # Flag to check if there's any data to plot
+
+    for user, user_data in users.items():
+        weights = user_data['weights']
+        if not weights:
+            continue
+
+        any_data = True  # We have at least one user's data
+
+        # Sort weights by timestamp
+        weights.sort(key=lambda x: x['timestamp'])
+
+        dates = [datetime.fromtimestamp(w['timestamp']) for w in weights]
+        weight_values = [w['weight'] for w in weights]
+
+        # Get color
+        color = colors[user]
+        rgb_color = (color[0], color[1], color[2])
+
+        ax.plot(dates, weight_values, label=user, color=rgb_color)
+
+        # Plot goal line
+        goal = user_data['goal']
+        ax.axhline(y=goal, linestyle='dashed', color=rgb_color, label=f"{user}'s Goal")
+
+    if not any_data:
+        return None  # Return None if there's no data to plot
+
+    ax.set_title('Weight Tracker')
+    ax.set_xlabel('Date')
+    ax.set_ylabel('Weight (kg)')
+    ax.legend()
+
+    # Format the x-axis for dates
+    fig.autofmt_xdate()
+
+    # Save the plot to a BytesIO object
+    img = io.BytesIO()
+    plt.savefig(img, format='png', bbox_inches='tight')
+    img.seek(0)
+    plt.close(fig)  # Close the figure to free memory
+    return img
+
 @app.route('/')
 def index():
     data = load_data()
-    return render_template('index.html', users=data['users'], colors=data['colors'])
+    chart_img = generate_chart(data)
+    chart_url = None
+    if chart_img:
+        chart_base64 = base64.b64encode(chart_img.getvalue()).decode('utf-8')
+        chart_url = 'data:image/png;base64,{}'.format(chart_base64)
+    return render_template('index.html', chart_url=chart_url)
+
+# Rest of your routes (add_user, add_data, edit_user, delete_user)
 
 # Route to add a user
 @app.route('/add_user', methods=['GET', 'POST'])
